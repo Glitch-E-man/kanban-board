@@ -1,19 +1,22 @@
+
 'use client';
-
-import React, { useState } from 'react';
-import { useUser, useAuthenticationStatus, useSignInEmailPassword, useSignUpEmailPassword } from '@nhost/nextjs';
-
+import React, { useState, useEffect } from 'react';
+import { useAuthenticationStatus, useSignInEmailPassword, useSignUpEmailPassword } from '@nhost/nextjs';
 import Board from './board';
 
 export default function BoardClient() {
+  const [isMounted, setIsMounted] = useState(false);
   const { isLoading, isAuthenticated } = useAuthenticationStatus();
-
   const { signInEmailPassword, isLoading: signingIn, error: signInError } = useSignInEmailPassword();
   const { signUpEmailPassword, isLoading: signingUp, error: signUpError } = useSignUpEmailPassword();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +27,16 @@ export default function BoardClient() {
     }
   };
 
-  if (isLoading) return <p className="p-4">Loading...</p>;
+  if (!isMounted || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-500">
+        <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
+          <p className="text-center">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-500">
@@ -79,6 +91,7 @@ export default function BoardClient() {
       </div>
     );
   }
+
 
   // 🔓 Authenticated: show the board
   return <Board />;

@@ -1,5 +1,5 @@
 
-import BoardClient from '@/components/boardclient';
+import BoardClient from '@/components/dynamicboardclient';
 
 export default function Home() {
   return <BoardClient />;
