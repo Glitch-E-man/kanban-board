@@ -3,15 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import NhostProviderWrapper from '@/components/providers/nhostProviderWrapper'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Kanban Board',
@@ -26,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NhostProviderWrapper>{children}</NhostProviderWrapper>
+        <NhostProviderWrapper>
+          {children} {/* Navbar removed here */}
+        </NhostProviderWrapper>
       </body>
     </html>
   )

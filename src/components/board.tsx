@@ -1,6 +1,8 @@
+
 import React, { useState } from "react";
 import Column from "./column";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
+
 
 interface Task {
   title: string;
@@ -19,32 +21,36 @@ const Board: React.FC = () => {
       title: "To-do",
       color: "bg-red-200",
       tasks: [
-        { title: "Set up project", assignee: "DW" },
-        { title: "Create UI layout", assignee: "MJ" },
-        { title: "Write components", assignee: "AL" },
+        
       ],
     },
     {
       title: "In Progress",
       color: "bg-yellow-200",
       tasks: [
-        { title: "Styling columns", assignee: "MJ" },
-        { title: "Refining structure", assignee: "DW" },
+        
       ],
     },
     {
       title: "Done",
       color: "bg-green-200",
       tasks: [
-        { title: "Initialize repo", assignee: "AL" },
-        { title: "Install dependencies", assignee: "DW" },
+        
       ],
     },
   ]);
 
   const handleDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
-    if (!destination) return;
+
+    console.log(
+    "Drag ended – source:",
+    result.source.droppableId,
+    "→ dest:",
+    result.destination?.droppableId
+  );
+
+  const { source, destination } = result;
+  if (!destination) return;
 
     const sourceColIdx = parseInt(source.droppableId);
     const destColIdx = parseInt(destination.droppableId);
@@ -86,7 +92,7 @@ const Board: React.FC = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 p-8 overflow-auto h-screen bg-gray-50">
+      <div className="flex gap-4 p-8 overflow-auto h-screen bg-gray-800">
         {boardData.map((col, idx) => (
           <Column
             key={idx}

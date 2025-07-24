@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthenticationStatus, useSignInEmailPassword, useSignUpEmailPassword } from '@nhost/nextjs';
 import Board from './board';
+import Navbar from '@/components/navbar';
+
+
 
 export default function BoardClient() {
   const [isMounted, setIsMounted] = useState(false);
@@ -39,6 +42,7 @@ export default function BoardClient() {
 
   if (!isAuthenticated) {
     return (
+      
       <div className="flex items-center justify-center h-screen bg-gray-500">
         <form
           onSubmit={handleAuth}
@@ -94,5 +98,11 @@ export default function BoardClient() {
 
 
   // 🔓 Authenticated: show the board
-  return <Board />;
+  
+  return(
+    <>
+      <Navbar />
+      <Board />
+    </>
+  ) 
 }

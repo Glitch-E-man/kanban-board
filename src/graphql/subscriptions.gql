@@ -1,0 +1,16 @@
+import { gql } from '@apollo/client';
+
+export const GET_BOARD_UPDATES = gql`
+  subscription GetBoardUpdates($userId: uuid!) {
+    board_updates(where: { user_id: { _eq: $userId } }) {
+      id
+      title
+      color
+      tasks(order_by: { position: asc }) {
+        id
+        title
+        assignee
+        position
+      }
+    }
+  }

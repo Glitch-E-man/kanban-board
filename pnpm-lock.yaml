@@ -14,6 +14,9 @@ importers:
       '@nhost/nextjs':
         specifier: ^2.2.9
         version: 2.2.9(@types/react@19.1.8)(next@15.3.5(@babel/core@7.28.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@nhost/nhost-js':
+        specifier: ^3.3.0
+        version: 3.3.0(graphql@16.11.0)
       '@nhost/react':
         specifier: ^3.11.1
         version: 3.11.1(@types/react@19.1.8)(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
