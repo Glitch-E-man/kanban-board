@@ -1,91 +1,106 @@
-// column.tsx
+// src/components/column.tsx
 import React, { useState } from "react";
 import Card from "./card";
-import { Droppable, Draggable } from "react-beautiful-dnd";
+import { Droppable, Draggable, DroppableProvided } from "react-beautiful-dnd";
 
 interface Task {
+  id: string;
   title: string;
   assignee: string;
 }
 
 interface ColumnProps {
+  id: string;
   index: number;
   title: string;
   tasks: Task[];
   color: string;
-  onAddTask: (columnIndex: number, newTask: Task) => void;
-  onDeleteTask: (columnIndex: number, taskIndex: number) => void;
+  onAddTask: (colId: string, taskData: Omit<Task, "id">) => void;
+  onDeleteTask: (colId: string, taskId: string) => void;
 }
 
 const Column: React.FC<ColumnProps> = ({
-  index,
+  id,
   title,
   tasks,
   color,
   onAddTask,
   onDeleteTask,
 }) => {
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [input, setInput] = useState("");
 
-  const handleAdd = () => {
-    if (!newTaskTitle.trim()) return;
-    onAddTask(index, { title: newTaskTitle, assignee: "NA" });
-    setNewTaskTitle("");
+  // Log on mount which column droppableId we expect
+  console.log("🗂️ Column mounting droppableId =", id);
+
+  const addTask = () => {
+    if (!input.trim()) return;
+    onAddTask(id, { title: input.trim(), assignee: "NA" });
+    setInput("");
   };
 
   return (
-    <div className={`${color} rounded p-4 w-80`}>
-      <h2 className="text-lg font-semibold mb-4 text-black">{title}</h2>
+    <div className={`${color} rounded p-4 w-80 flex flex-col`}>
+      {/* Column header */}
+      <div className="flex items-center justify-between mb-4 cursor-grab">
+        <h2 className="text-lg font-semibold text-black">{title}</h2>
+        <span>≡</span>
+      </div>
 
       {/* Add Task UI */}
       <div className="flex gap-2 mb-4">
         <input
-          type="text"
-          placeholder="New task..."
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
           className="flex-grow p-2 rounded text-black"
+          placeholder="New task..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && addTask()}
         />
         <button
-          onClick={handleAdd}
+          onClick={addTask}
           className="bg-white text-black px-4 py-2 rounded shadow"
         >
           Add
         </button>
       </div>
 
-      {/* Drag-and-Drop List */}
-      <Droppable droppableId={`${index}`}>
-        {(dropProvided) => (
-          <div
-            ref={dropProvided.innerRef}
-            {...dropProvided.droppableProps}
-          >
-            {tasks.map((task, i) => (
-              <Draggable
-                key={`${index}-${i}`}
-                draggableId={`${index}-${i}`}
-                index={i}
-              >
-                {(dragProvided) => (
-                  <div
-                    ref={dragProvided.innerRef}
-                    {...dragProvided.draggableProps}
-                    {...dragProvided.dragHandleProps}
-                  >
-                    <Card
-                      title={task.title}
-                      assignee={task.assignee}
-                      onDelete={() => onDeleteTask(index, i)}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-
-            {dropProvided.placeholder}
-          </div>
-        )}
+      {/* Task list droppable */}
+      <Droppable
+        droppableId={id}
+        type="TASK"
+        isDropDisabled={false}
+        isCombineEnabled={false}
+        ignoreContainerClipping={false}
+      >
+        {(prov: DroppableProvided) => {
+          console.log("📦 Registering column droppable:", id, prov.droppableProps);
+          return (
+            <div
+              ref={prov.innerRef}
+              {...prov.droppableProps}
+              className="flex-grow min-h-[100px] bg-gray-100/20 rounded shadow"
+            >
+              {tasks.map((task, idx) => (
+                <Draggable key={task.id} draggableId={task.id} index={idx}>
+                  {(dragProv) => (
+                    <div
+                      ref={dragProv.innerRef}
+                      {...dragProv.draggableProps}
+                      {...dragProv.dragHandleProps}
+                    >
+                      <Card
+                        id={task.id}
+                        title={task.title}
+                        assignee={task.assignee}
+                        onDelete={() => onDeleteTask(id, task.id)}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {prov.placeholder}
+            </div>
+          );
+        }}
       </Droppable>
     </div>
   );

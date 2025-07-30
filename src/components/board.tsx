@@ -1,110 +1,154 @@
-
+// src/components/board.tsx
 import React, { useState } from "react";
 import Column from "./column";
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
-
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+  DroppableProvided,
+} from "react-beautiful-dnd";
 
 interface Task {
+  id: string;
   title: string;
   assignee: string;
 }
 
 interface ColumnData {
+  id: string;
   title: string;
   color: string;
   tasks: Task[];
 }
 
 const Board: React.FC = () => {
-  const [boardData, setBoardData] = useState<ColumnData[]>([
-    {
-      title: "To-do",
-      color: "bg-red-200",
-      tasks: [
-        
-      ],
-    },
-    {
-      title: "In Progress",
-      color: "bg-yellow-200",
-      tasks: [
-        
-      ],
-    },
-    {
-      title: "Done",
-      color: "bg-green-200",
-      tasks: [
-        
-      ],
-    },
-  ]);
-
-  const handleDragEnd = (result: DropResult) => {
-
-    console.log(
-    "Drag ended – source:",
-    result.source.droppableId,
-    "→ dest:",
-    result.destination?.droppableId
+  const boardColumnIds = [
+    "column-0",
+    "column-1",
+    "column-2",
+    "column-3",
+    "column-4",
+  ];
+  const [boardData, setBoardData] = useState<ColumnData[]>(
+    boardColumnIds.map((id, index) => ({
+      id,
+      title: ["To‑do", "In Progress", "Done", "Started", "On Hold"][index],
+      color: [
+        "bg-red-200",
+        "bg-yellow-200",
+        "bg-green-200",
+        "bg-blue-200",
+        "bg-orange-200",
+      ][index],
+      tasks: [],
+    }))
   );
 
-  const { source, destination } = result;
-  if (!destination) return;
+  console.log("Board rendering columns:", boardData.map((c) => c.id));
 
-    const sourceColIdx = parseInt(source.droppableId);
-    const destColIdx = parseInt(destination.droppableId);
+  const handleDragEnd = (result: DropResult) => {
+    const { source, destination, type } = result;
+    if (!destination) return;
 
-    const sourceCol = boardData[sourceColIdx];
-    const destCol = boardData[destColIdx];
+    if (type === "COLUMN") {
+      const cols = Array.from(boardData);
+      const [moved] = cols.splice(source.index, 1);
+      cols.splice(destination.index, 0, moved);
+      setBoardData(cols);
+      return;
+    }
 
-    const sourceTasks = [...sourceCol.tasks];
+    // Card move logic unchanged…
+    const srcIdx = boardData.findIndex((c) => c.id === source.droppableId);
+    const dstIdx = boardData.findIndex((c) => c.id === destination.droppableId);
+    if (srcIdx < 0 || dstIdx < 0) return;
+
+    const newBoard = Array.from(boardData);
+    const sourceTasks = Array.from(newBoard[srcIdx].tasks);
     const [movedTask] = sourceTasks.splice(source.index, 1);
 
-    if (sourceColIdx === destColIdx) {
+    if (srcIdx === dstIdx) {
       sourceTasks.splice(destination.index, 0, movedTask);
-      const updatedColumn = { ...sourceCol, tasks: sourceTasks };
-      const newBoard = [...boardData];
-      newBoard[sourceColIdx] = updatedColumn;
-      setBoardData(newBoard);
+      newBoard[srcIdx].tasks = sourceTasks;
     } else {
-      const destTasks = [...destCol.tasks];
+      const destTasks = Array.from(newBoard[dstIdx].tasks);
       destTasks.splice(destination.index, 0, movedTask);
-
-      const newBoard = [...boardData];
-      newBoard[sourceColIdx] = { ...sourceCol, tasks: sourceTasks };
-      newBoard[destColIdx] = { ...destCol, tasks: destTasks };
-      setBoardData(newBoard);
+      newBoard[srcIdx].tasks = sourceTasks;
+      newBoard[dstIdx].tasks = destTasks;
     }
-  };
 
-  const handleAddTask = (colIdx: number, newTask: Task) => {
-    const newBoard = [...boardData];
-    newBoard[colIdx].tasks.push(newTask);
     setBoardData(newBoard);
   };
 
-  const handleDeleteTask = (colIdx: number, taskIdx: number) => {
-    const newBoard = [...boardData];
-    newBoard[colIdx].tasks.splice(taskIdx, 1);
-    setBoardData(newBoard);
+  const generateTaskId = () =>
+    `task-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  const handleAddTask = (colId: string, taskData: Omit<Task, "id">) => {
+    const newTask: Task = { id: generateTaskId(), ...taskData };
+    setBoardData((prev) =>
+      prev.map((col) =>
+        col.id === colId ? { ...col, tasks: [...col.tasks, newTask] } : col
+      )
+    );
+  };
+
+  const handleDeleteTask = (colId: string, taskId: string) => {
+    setBoardData((prev) =>
+      prev.map((col) =>
+        col.id === colId
+          ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+          : col
+      )
+    );
   };
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 p-8 overflow-auto h-screen bg-gray-800">
-        {boardData.map((col, idx) => (
-          <Column
-            key={idx}
-            index={idx}
-            title={col.title}
-            tasks={col.tasks}
-            color={col.color}
-            onAddTask={handleAddTask}
-            onDeleteTask={handleDeleteTask}
-          />
-        ))}
-      </div>
+      <Droppable
+        droppableId="all-columns"
+        direction="horizontal"
+        type="COLUMN"
+        isDropDisabled={false}
+        isCombineEnabled={false}
+        ignoreContainerClipping={false}
+      >
+        {(prov: DroppableProvided) => (
+          <div
+            ref={prov.innerRef}
+            {...prov.droppableProps}
+            className="flex gap-4 p-8 overflow-auto h-screen bg-gray-50 min-h-[200px]"
+          >
+            {boardData.map((column, idx) => (
+              <Draggable
+                key={column.id}
+                draggableId={column.id}
+                index={idx}
+              >
+                {(dragProv) => (
+                  <div
+                    ref={dragProv.innerRef}
+                    {...dragProv.draggableProps}
+                    {...dragProv.dragHandleProps}
+                    className="flex-shrink-0"
+                  >
+                    <Column
+                      id={column.id}
+                      index={idx}
+                      title={column.title}
+                      tasks={column.tasks}
+                      color={column.color}
+                      onAddTask={handleAddTask}
+                      onDeleteTask={handleDeleteTask}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {prov.placeholder}
+          </div>
+        )}
+      </Droppable>
     </DragDropContext>
   );
 };
