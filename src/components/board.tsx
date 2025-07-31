@@ -1,4 +1,3 @@
-// src/components/board.tsx
 import React, { useState } from "react";
 import Column from "./column";
 import {
@@ -22,6 +21,8 @@ interface ColumnData {
   tasks: Task[];
 }
 
+
+
 const Board: React.FC = () => {
   const boardColumnIds = [
     "column-0",
@@ -30,6 +31,7 @@ const Board: React.FC = () => {
     "column-3",
     "column-4",
   ];
+
   const [boardData, setBoardData] = useState<ColumnData[]>(
     boardColumnIds.map((id, index) => ({
       id,
@@ -45,12 +47,11 @@ const Board: React.FC = () => {
     }))
   );
 
-  console.log("Board rendering columns:", boardData.map((c) => c.id));
-
   const handleDragEnd = (result: DropResult) => {
     const { source, destination, type } = result;
     if (!destination) return;
 
+    // 1️⃣ Column reorder
     if (type === "COLUMN") {
       const cols = Array.from(boardData);
       const [moved] = cols.splice(source.index, 1);
@@ -59,9 +60,9 @@ const Board: React.FC = () => {
       return;
     }
 
-    // Card move logic unchanged…
-    const srcIdx = boardData.findIndex((c) => c.id === source.droppableId);
-    const dstIdx = boardData.findIndex((c) => c.id === destination.droppableId);
+    // 2️⃣ Card move
+    const srcIdx = boardData.findIndex(c => c.id === source.droppableId);
+    const dstIdx = boardData.findIndex(c => c.id === destination.droppableId);
     if (srcIdx < 0 || dstIdx < 0) return;
 
     const newBoard = Array.from(boardData);
@@ -81,23 +82,22 @@ const Board: React.FC = () => {
     setBoardData(newBoard);
   };
 
-  const generateTaskId = () =>
-    `task-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const generateTaskId = () => `task-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
   const handleAddTask = (colId: string, taskData: Omit<Task, "id">) => {
     const newTask: Task = { id: generateTaskId(), ...taskData };
-    setBoardData((prev) =>
-      prev.map((col) =>
+    setBoardData(prev =>
+      prev.map(col =>
         col.id === colId ? { ...col, tasks: [...col.tasks, newTask] } : col
       )
     );
   };
 
   const handleDeleteTask = (colId: string, taskId: string) => {
-    setBoardData((prev) =>
-      prev.map((col) =>
+    setBoardData(prev =>
+      prev.map(col =>
         col.id === colId
-          ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+          ? { ...col, tasks: col.tasks.filter(t => t.id !== taskId) }
           : col
       )
     );
@@ -120,11 +120,7 @@ const Board: React.FC = () => {
             className="flex gap-4 p-8 overflow-auto h-screen bg-gray-50 min-h-[200px]"
           >
             {boardData.map((column, idx) => (
-              <Draggable
-                key={column.id}
-                draggableId={column.id}
-                index={idx}
-              >
+              <Draggable key={column.id} draggableId={column.id} index={idx}>
                 {(dragProv) => (
                   <div
                     ref={dragProv.innerRef}

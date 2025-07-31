@@ -13,4 +13,4 @@ export const GET_BOARD_UPDATES = gql`
         position
       }
     }
-  }
+  };
